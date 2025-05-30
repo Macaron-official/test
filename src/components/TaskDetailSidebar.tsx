@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, ChevronDown, ChevronRight, FileText, Download } from 'lucide-react';
+import { X, ChevronDown, ChevronRight, FileText, Download, Maximize2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import type { Task, TaskAttachment } from '@/types/task';
@@ -10,6 +10,7 @@ interface TaskDetailSidebarProps {
   task: Task | null;
   isOpen: boolean;
   onClose: () => void;
+  onExpand: () => void;
 }
 
 function getStatusBadge(status: Task['status']) {
@@ -62,7 +63,7 @@ function getFileIcon(type: TaskAttachment['type']) {
   }
 }
 
-export default function TaskDetailSidebar({ task, isOpen, onClose }: TaskDetailSidebarProps) {
+export default function TaskDetailSidebar({ task, isOpen, onClose, onExpand }: TaskDetailSidebarProps) {
   const [showMoreProperties, setShowMoreProperties] = useState(false);
 
   if (!task) return null;
@@ -93,12 +94,21 @@ export default function TaskDetailSidebar({ task, isOpen, onClose }: TaskDetailS
             />
             <span className="font-medium text-gray-900">任务详情</span>
           </div>
-          <button
-            onClick={onClose}
-            className="p-1 hover:bg-gray-100 rounded transition-colors"
-          >
-            <X className="w-4 h-4 text-gray-500" />
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={onExpand}
+              className="p-1 hover:bg-gray-100 rounded transition-colors"
+              title="展开为完整页面"
+            >
+              <Maximize2 className="w-4 h-4 text-gray-500" />
+            </button>
+            <button
+              onClick={onClose}
+              className="p-1 hover:bg-gray-100 rounded transition-colors"
+            >
+              <X className="w-4 h-4 text-gray-500" />
+            </button>
+          </div>
         </div>
 
         {/* Content */}
