@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import type React from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -41,6 +42,10 @@ export default function HomePage() {
   const [isCreatingTask, setIsCreatingTask] = useState(false);
   const [editingFields, setEditingFields] = useState<{[key: string]: boolean}>({});
   const [editValues, setEditValues] = useState<{[key: string]: any}>({});
+  const [selectedPersonnel, setSelectedPersonnel] = useState<string[]>(['张三', '李四']);
+  const [selectedTags, setSelectedTags] = useState<string[]>(['前端', '重要']);
+  const [personnelInput, setPersonnelInput] = useState('');
+  const [tagsInput, setTagsInput] = useState('');
 
   const handleTaskClick = (task: Task) => {
     setSelectedTask(task);
@@ -95,6 +100,42 @@ export default function HomePage() {
     setEditValues(newEditValues);
   };
 
+  const addPersonnel = (person: string) => {
+    if (person.trim() && !selectedPersonnel.includes(person.trim())) {
+      setSelectedPersonnel([...selectedPersonnel, person.trim()]);
+      setPersonnelInput('');
+    }
+  };
+
+  const removePersonnel = (person: string) => {
+    setSelectedPersonnel(selectedPersonnel.filter(p => p !== person));
+  };
+
+  const addTag = (tag: string) => {
+    if (tag.trim() && !selectedTags.includes(tag.trim())) {
+      setSelectedTags([...selectedTags, tag.trim()]);
+      setTagsInput('');
+    }
+  };
+
+  const removeTag = (tag: string) => {
+    setSelectedTags(selectedTags.filter(t => t !== tag));
+  };
+
+  const handlePersonnelKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addPersonnel(personnelInput);
+    }
+  };
+
+  const handleTagsKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addTag(tagsInput);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Image */}
@@ -111,34 +152,16 @@ export default function HomePage() {
       <div className="max-w-full mx-auto px-12 py-8">
         {/* Title */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-6">📋 任务</h1>
-
-          {/* View Controls */}
-          <div className="flex items-center gap-6 mb-6">
-            <div className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 cursor-pointer">
-              <Target className="w-4 h-4" />
-              <span>By Project</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm font-medium text-gray-900 cursor-pointer">
-              <Calendar className="w-4 h-4" />
-              <span>All tasks</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 cursor-pointer">
-              <Tag className="w-4 h-4" />
-              <span>Timeline</span>
-            </div>
-            <div className="ml-auto flex items-center gap-2">
-              <MoreHorizontal className="w-4 h-4 text-gray-400 cursor-pointer" />
-              <Search className="w-4 h-4 text-gray-400 cursor-pointer" />
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-1"
-                onClick={handleCreateNewTask}
-              >
-                新建
-              </Button>
-            </div>
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-3xl font-bold text-gray-900">📋 任务</h1>
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-1"
+              onClick={handleCreateNewTask}
+            >
+              新建
+            </Button>
           </div>
 
           {/* Task Table */}
@@ -301,12 +324,25 @@ export default function HomePage() {
                     </div>
                   )}
                 </div>
-                <button
-                  onClick={handleCloseFullPage}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                >
-                  <X className="w-6 h-6 text-gray-500" />
-                </button>
+                <div className="flex items-center gap-3">
+                  {isCreatingTask ? (
+                    <>
+                      <Button variant="outline" onClick={handleCloseFullPage}>
+                        取消
+                      </Button>
+                      <Button onClick={handleSubmitNewTask}>
+                        创建任务
+                      </Button>
+                    </>
+                  ) : (
+                    <button
+                      onClick={handleCloseFullPage}
+                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    >
+                      <X className="w-6 h-6 text-gray-500" />
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -314,129 +350,206 @@ export default function HomePage() {
             <div className="p-8 space-y-8">
               {isCreatingTask ? (
                 /* Create Task Form */
-                <div className="space-y-8">
-                  <div className="grid grid-cols-2 gap-8">
+                <div className="max-w-4xl mx-auto space-y-8">
+                  {/* Task Name - Full Width */}
+                  <div className="space-y-3">
+                    <label className="block text-lg font-semibold text-gray-900">任务名称</label>
+                    <input
+                      type="text"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base bg-white shadow-sm"
+                      placeholder="输入任务名称..."
+                    />
+                  </div>
+
+                  {/* Overview - Full Width */}
+                  <div className="space-y-3">
+                    <label className="block text-lg font-semibold text-gray-900">任务描述</label>
+                    <textarea
+                      rows={4}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base bg-white shadow-sm resize-none"
+                      placeholder="描述这个任务的详细信息..."
+                    />
+                  </div>
+
+                  {/* Form Grid */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {/* Left Column */}
                     <div className="space-y-6">
-                      {/* Task Name */}
-                      <div className="space-y-2">
-                        <label className="block text-base font-medium text-gray-700">任务名称</label>
+                      {/* Personnel */}
+                      <div className="space-y-3">
+                        <label className="block text-base font-semibold text-gray-900 flex items-center gap-2">
+                          <User className="w-5 h-5 text-gray-600" />
+                          分配人员
+                        </label>
+                        <div className="space-y-3">
+                          {selectedPersonnel.length > 0 && (
+                            <div className="flex flex-wrap gap-2">
+                              {selectedPersonnel.map((person) => (
+                                <Badge key={person} className="flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-800 border border-blue-200 rounded-full">
+                                  <Avatar className="w-5 h-5">
+                                    <AvatarFallback className="text-xs bg-blue-200 text-blue-800">
+                                      {getUserInitials(person)}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  {person}
+                                  <X
+                                    className="w-4 h-4 cursor-pointer hover:text-red-600 transition-colors"
+                                    onClick={() => removePersonnel(person)}
+                                  />
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                          <input
+                            type="text"
+                            list="personnel"
+                            value={personnelInput}
+                            onChange={(e) => setPersonnelInput(e.target.value)}
+                            onKeyPress={handlePersonnelKeyPress}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base bg-white shadow-sm"
+                            placeholder="输入人员姓名..."
+                          />
+                          <datalist id="personnel">
+                            <option value="张三" />
+                            <option value="李四" />
+                            <option value="王五" />
+                            <option value="赵六" />
+                            <option value="陈小明" />
+                            <option value="刘小红" />
+                            <option value="孙小华" />
+                            <option value="周小丽" />
+                            <option value="吴小军" />
+                            <option value="郑小燕" />
+                          </datalist>
+                        </div>
+                      </div>
+
+                      {/* Project */}
+                      <div className="space-y-3">
+                        <label className="block text-base font-semibold text-gray-900 flex items-center gap-2">
+                          <Briefcase className="w-5 h-5 text-gray-600" />
+                          所属项目
+                        </label>
                         <input
                           type="text"
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
-                          placeholder="输入任务名称..."
+                          list="projects"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base bg-white shadow-sm"
+                          placeholder="输入或选择项目..."
                         />
-                      </div>
-
-                      {/* Personnel */}
-                      <div className="flex items-center justify-between py-4 border-b border-gray-100">
-                        <div className="flex items-center gap-3 text-base font-medium text-gray-700">
-                          <User className="w-5 h-5 text-gray-500" />
-                          <span>人员</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-blue-600 cursor-pointer hover:underline">添加人员</span>
-                        </div>
-                      </div>
-
-                      {/* Status */}
-                      <div className="flex items-center justify-between py-4 border-b border-gray-100">
-                        <div className="flex items-center gap-3 text-base font-medium text-gray-700">
-                          <span className="text-xl">⚡</span>
-                          <span>任务状态</span>
-                        </div>
-                        <div>
-                          <select className="px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                            <option value="not-started">未启动</option>
-                            <option value="in-progress">进行中</option>
-                            <option value="completed">已完成</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      {/* Overview */}
-                      <div className="space-y-2">
-                        <label className="block text-base font-medium text-gray-700">概述</label>
-                        <textarea
-                          rows={4}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
-                          placeholder="描述这个任务的详细信息..."
-                        />
+                        <datalist id="projects">
+                          <option value="项目A" />
+                          <option value="项目B" />
+                          <option value="项目C" />
+                          <option value="任务管理系统" />
+                          <option value="网站重构" />
+                          <option value="移动应用开发" />
+                        </datalist>
                       </div>
 
                       {/* Time */}
-                      <div className="flex items-center justify-between py-4 border-b border-gray-100">
-                        <div className="flex items-center gap-3 text-base font-medium text-gray-700">
-                          <Clock className="w-5 h-5 text-gray-500" />
-                          <span>时间</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <input type="date" className="px-3 py-2 border border-gray-300 rounded-lg text-sm" />
-                          <span className="text-gray-400">→</span>
-                          <input type="date" className="px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+                      <div className="space-y-3">
+                        <label className="block text-base font-semibold text-gray-900 flex items-center gap-2">
+                          <Clock className="w-5 h-5 text-gray-600" />
+                          时间安排
+                        </label>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-sm text-gray-600 mb-1">开始日期</label>
+                            <input type="date" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+                          </div>
+                          <div>
+                            <label className="block text-sm text-gray-600 mb-1">结束日期</label>
+                            <input type="date" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+                          </div>
                         </div>
                       </div>
                     </div>
 
                     {/* Right Column */}
                     <div className="space-y-6">
-                      {/* Project */}
-                      <div className="flex items-center justify-between py-4 border-b border-gray-100">
-                        <div className="flex items-center gap-3 text-base font-medium text-gray-700">
-                          <Briefcase className="w-5 h-5 text-gray-500" />
-                          <span>所属项目</span>
+                      {/* Tags */}
+                      <div className="space-y-3">
+                        <label className="block text-base font-semibold text-gray-900 flex items-center gap-2">
+                          <Tag className="w-5 h-5 text-gray-600" />
+                          标签
+                        </label>
+                        <div className="space-y-3">
+                          {selectedTags.length > 0 && (
+                            <div className="flex flex-wrap gap-2">
+                              {selectedTags.map((tag) => (
+                                <Badge
+                                  key={tag}
+                                  className={`flex items-center gap-2 px-3 py-1 rounded-full ${
+                                    tag === '前端' ? 'bg-blue-100 text-blue-800 border border-blue-200' :
+                                    tag === '重要' ? 'bg-green-100 text-green-800 border border-green-200' :
+                                    tag === '紧急' ? 'bg-red-100 text-red-800 border border-red-200' :
+                                    tag === '设计' ? 'bg-purple-100 text-purple-800 border border-purple-200' :
+                                    'bg-gray-100 text-gray-800 border border-gray-200'
+                                  }`}
+                                >
+                                  {tag}
+                                  <X
+                                    className="w-4 h-4 cursor-pointer hover:text-red-600 transition-colors"
+                                    onClick={() => removeTag(tag)}
+                                  />
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                          <input
+                            type="text"
+                            list="tags"
+                            value={tagsInput}
+                            onChange={(e) => setTagsInput(e.target.value)}
+                            onKeyPress={handleTagsKeyPress}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base bg-white shadow-sm"
+                            placeholder="输入标签..."
+                          />
+                          <datalist id="tags">
+                            <option value="前端" />
+                            <option value="后端" />
+                            <option value="设计" />
+                            <option value="测试" />
+                            <option value="紧急" />
+                            <option value="重要" />
+                            <option value="UI/UX" />
+                            <option value="API" />
+                            <option value="数据库" />
+                            <option value="文档" />
+                          </datalist>
                         </div>
-                        <div className="text-base">
-                          <select className="px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                            <option value="">选择项目</option>
-                            <option value="项目A">项目A</option>
-                            <option value="项目B">项目B</option>
-                          </select>
-                        </div>
+                      </div>
+
+                      {/* Status */}
+                      <div className="space-y-3">
+                        <label className="block text-base font-semibold text-gray-900 flex items-center gap-2">
+                          <span className="text-xl">⚡</span>
+                          任务状态
+                        </label>
+                        <select className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base bg-white shadow-sm">
+                          <option value="not-started">未启动</option>
+                          <option value="in-progress">进行中</option>
+                          <option value="completed">已完成</option>
+                        </select>
                       </div>
 
                       {/* Priority */}
-                      <div className="flex items-center justify-between py-4 border-b border-gray-100">
-                        <div className="flex items-center gap-3 text-base font-medium text-gray-700">
-                          <Star className="w-5 h-5 text-gray-500" />
-                          <span>优先级</span>
-                        </div>
-                        <div className="text-base">
-                          <select className="px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                            <option value="">选择优先级</option>
-                            <option value="high">高</option>
-                            <option value="medium">中</option>
-                            <option value="low">低</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      {/* Tags */}
-                      <div className="flex items-center justify-between py-4 border-b border-gray-100">
-                        <div className="flex items-center gap-3 text-base font-medium text-gray-700">
-                          <Tag className="w-5 h-5 text-gray-500" />
-                          <span>标签</span>
-                        </div>
-                        <div className="text-base">
-                          <input
-                            type="text"
-                            className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                            placeholder="添加标签..."
-                          />
-                        </div>
+                      <div className="space-y-3">
+                        <label className="block text-base font-semibold text-gray-900 flex items-center gap-2">
+                          <Star className="w-5 h-5 text-gray-600" />
+                          优先级
+                        </label>
+                        <select className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base bg-white shadow-sm">
+                          <option value="">选择优先级</option>
+                          <option value="high">🔴 高</option>
+                          <option value="medium">🟡 中</option>
+                          <option value="low">🟢 低</option>
+                        </select>
                       </div>
                     </div>
                   </div>
 
-                  {/* Action Buttons */}
-                  <div className="flex justify-end gap-4 pt-8 border-t border-gray-200">
-                    <Button variant="outline" onClick={handleCloseFullPage}>
-                      取消
-                    </Button>
-                    <Button onClick={handleSubmitNewTask}>
-                      创建任务
-                    </Button>
-                  </div>
+
                 </div>
               ) : selectedTask && (
                 /* Existing Task Detail View */
